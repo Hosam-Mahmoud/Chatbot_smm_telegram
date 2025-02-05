@@ -20,6 +20,7 @@ while True:
             user="root",
             password="zaKdkXtvZDfjGNGRwuXpfNBsbNBzgtlo",
             database="railway"
+            port=3306
         )
         cursor = conn.cursor()
         logging.info("✅ تم الاتصال بقاعدة البيانات بنجاح.")
