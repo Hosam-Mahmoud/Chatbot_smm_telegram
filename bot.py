@@ -1,26 +1,35 @@
 import logging
 import telebot
 import mysql.connector
+import os
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 import time
 
 # إعداد التسجيل لتسجيل الأخطاء
 logging.basicConfig(level=logging.INFO)
 
-# إعدادات البوت
-TOKEN = "7745789981:AAEI5LcwnS0MWYsba_XKded-oEmBLyjSrcQ"  # ضع توكن البوت هنا
-ADMIN_ID = 5229631462  # ضع معرف الأدمن هنا
+# جلب المتغيرات من Shared Variables
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  
+ADMIN_ID = int(os.getenv("ADMIN_ID", 0))  
+
+DB_HOST = os.getenv("MYSQLHOST")
+DB_USER = os.getenv("MYSQLUSER")
+DB_PASSWORD = os.getenv("MYSQLPASSWORD")
+DB_NAME = os.getenv("MYSQLDATABASE")
+DB_PORT = int(os.getenv("MYSQLPORT", 3306))
+
+# إعداد البوت
 bot = telebot.TeleBot(TOKEN)
 
 # محاولة الاتصال بقاعدة البيانات
 while True:
     try:
         conn = mysql.connector.connect(
-            host="mysql.railway.internal",
-            user="root",
-            password="zaKdkXtvZDfjGNGRwuXpfNBsbNBzgtlo",
-            database="railway"
-            port=3306
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            database=DB_NAME,
+            port=DB_PORT
         )
         cursor = conn.cursor()
         logging.info("✅ تم الاتصال بقاعدة البيانات بنجاح.")
@@ -79,14 +88,13 @@ def select_quantity(call):
 def confirm_order(message, service):
     try:
         quantity = int(message.text.strip())
-        price_per_unit = 0.05  # سعر الوحدة
+        price_per_unit = 0.05  
         total_price = quantity * price_per_unit
         cursor.execute("INSERT INTO orders (user_id, service, quantity, price, total_price, status) VALUES (%s, %s, %s, %s, %s, 'قيد المعالجة')", 
                        (message.chat.id, service, quantity, price_per_unit, total_price))
         conn.commit()
         order_id = cursor.lastrowid
-        bot.send_message(message.chat.id, f"✅ تم إنشاء الطلب رقم {order_id} بنجاح! السعر الإجمالي: {total_price}$.
-🖼 أرسل صورة إثبات الدفع:")
+        bot.send_message(message.chat.id, f"✅ تم إنشاء الطلب رقم {order_id} بنجاح! السعر الإجمالي: {total_price}$.\n🖼 أرسل صورة إثبات الدفع:")
         bot.register_next_step_handler(message, lambda m: upload_proof(m, order_id))
     except ValueError:
         bot.send_message(message.chat.id, "❌ أدخل رقمًا صحيحًا.")
