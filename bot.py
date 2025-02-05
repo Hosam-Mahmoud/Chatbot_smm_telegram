@@ -16,10 +16,10 @@ bot = telebot.TeleBot(TOKEN)
 while True:
     try:
         conn = mysql.connector.connect(
-            host="localhost",
+            host="mysql.railway.internal",
             user="root",
-            password="",
-            database="smm_bot"
+            password="zaKdkXtvZDfjGNGRwuXpfNBsbNBzgtlo",
+            database="railway"
         )
         cursor = conn.cursor()
         logging.info("✅ تم الاتصال بقاعدة البيانات بنجاح.")
